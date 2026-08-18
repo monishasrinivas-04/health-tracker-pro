@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function HealthHistory() {
+function HealthHistory({ onDelete }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,6 +25,34 @@ function HealthHistory() {
   useEffect(() => {
     fetchRecords();
   }, []);
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this health record?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/records/${id}`
+      );
+
+      // Remove the deleted record from the current UI
+      setRecords((currentRecords) =>
+        currentRecords.filter((record) => record._id !== id)
+      );
+
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      alert("Unable to delete the health record.");
+    }
+  };
 
   if (loading) {
     return (
@@ -73,6 +101,7 @@ function HealthHistory() {
                 <th>BMI</th>
                 <th>Steps</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
@@ -115,6 +144,17 @@ function HealthHistory() {
                     >
                       {record.fitnessStatus || "Not available"}
                     </span>
+                  </td>
+
+                  <td>
+                    <button
+                      className="delete-button"
+                      onClick={() =>
+                        handleDelete(record._id)
+                      }
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

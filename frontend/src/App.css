@@ -115,3 +115,20 @@
     padding: 18px;
   }
 }
+
+.delete-button {
+  padding: 7px 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.delete-button:hover {
+  background: rgba(248, 113, 113, 0.25);
+  transform: translateY(-1px);
+}

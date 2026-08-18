@@ -139,7 +139,11 @@ function App() {
           healthTip={healthData?.healthTip}
         />
 
-        <HealthHistory />
+        <HealthHistory
+  onDelete={() => {
+    console.log("Record deleted successfully");
+  }}
+/>
       </div>
     </div>
   );
