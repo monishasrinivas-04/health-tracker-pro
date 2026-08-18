@@ -7,6 +7,7 @@ import HealthForm from "./components/HealthForm";
 import HealthReport from "./components/HealthReport";
 import HealthHistory from "./components/HealthHistory";
 import HealthDashboard from "./components/HealthDashboard";
+import HealthTrends from "./components/HealthTrends";
 
 import { calculateHealthData } from "./utils/healthCalculations";
 
@@ -201,7 +202,9 @@ function App() {
 
 
         <HealthDashboard />
-        
+
+        <HealthTrends />
+
         <HealthForm
           name={name}
           age={age}
