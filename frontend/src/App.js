@@ -18,6 +18,20 @@ function App() {
   const [message, setMessage] = useState("");
   const [healthData, setHealthData] = useState(null);
 
+  const [editingRecord, setEditingRecord] = useState(null);
+
+  const [historyVersion, setHistoryVersion] = useState(0);
+
+  const resetForm = () => {
+    setName("");
+    setAge("");
+    setWeight("");
+    setHeight("");
+    setSteps("");
+    setHealthData(null);
+    setEditingRecord(null);
+  };
+
   const addRecord = async () => {
     try {
       const calculatedData = calculateHealthData(
@@ -49,10 +63,91 @@ function App() {
 
       setHealthData(calculatedData);
       setMessage("Record Added Successfully");
+
+      setHistoryVersion((version) => version + 1);
     } catch (error) {
       console.log(error);
       setMessage("Backend Error");
     }
+  };
+
+  const startEditing = (record) => {
+    setEditingRecord(record);
+
+    setName(record.name || "");
+    setAge(record.age || "");
+    setWeight(record.weight || "");
+    setHeight(record.height || "");
+    setSteps(record.steps || "");
+
+    setHealthData({
+      bmi: record.bmi,
+      waterIntake: record.waterIntake,
+      fitnessStatus: record.fitnessStatus,
+      diet: record.diet,
+      healthTip: record.healthTip
+    });
+
+    setMessage("Editing health record");
+    
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  const updateRecord = async () => {
+    try {
+      const calculatedData = calculateHealthData(
+        weight,
+        height,
+        steps
+      );
+
+      if (!calculatedData) {
+        setMessage("Please enter valid weight and height.");
+        return;
+      }
+
+      await axios.put(
+        `http://localhost:5000/api/records/${editingRecord._id}`,
+        {
+          name,
+          age,
+          weight,
+          height,
+          steps,
+          bmi: calculatedData.bmi,
+          waterIntake: calculatedData.waterIntake,
+          fitnessStatus: calculatedData.fitnessStatus,
+          diet: calculatedData.diet,
+          healthTip: calculatedData.healthTip
+        }
+      );
+
+      setHealthData(calculatedData);
+      setMessage("Record Updated Successfully");
+
+      setEditingRecord(null);
+
+      setHistoryVersion((version) => version + 1);
+    } catch (error) {
+      console.log(error);
+      setMessage("Unable to update health record.");
+    }
+  };
+
+  const handleSubmit = () => {
+    if (editingRecord) {
+      updateRecord();
+    } else {
+      addRecord();
+    }
+  };
+
+  const cancelEdit = () => {
+    resetForm();
+    setMessage("Edit cancelled");
   };
 
   return (
@@ -113,7 +208,9 @@ function App() {
           setWeight={setWeight}
           setHeight={setHeight}
           setSteps={setSteps}
-          onSubmit={addRecord}
+          onSubmit={handleSubmit}
+          isEditing={Boolean(editingRecord)}
+          onCancel={cancelEdit}
         />
 
         {message && (
@@ -140,10 +237,12 @@ function App() {
         />
 
         <HealthHistory
-  onDelete={() => {
-    console.log("Record deleted successfully");
-  }}
-/>
+          key={historyVersion}
+          onEdit={startEditing}
+          onDelete={() => {
+            setHistoryVersion((version) => version + 1);
+          }}
+        />
       </div>
     </div>
   );

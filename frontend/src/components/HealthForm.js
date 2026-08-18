@@ -11,7 +11,9 @@ function HealthForm({
   setWeight,
   setHeight,
   setSteps,
-  onSubmit
+  onSubmit,
+  isEditing,
+  onCancel
 }) {
   const inputStyle = {
     width: "100%",
@@ -73,7 +75,9 @@ function HealthForm({
         style={{
           width: "100%",
           padding: "14px",
-          background: "linear-gradient(to right, #7f5af0, #6246ea)",
+          background: isEditing
+            ? "linear-gradient(to right, #0ea5e9, #2563eb)"
+            : "linear-gradient(to right, #7f5af0, #6246ea)",
           color: "#ffffff",
           border: "none",
           borderRadius: "12px",
@@ -83,8 +87,28 @@ function HealthForm({
           marginTop: "10px"
         }}
       >
-        Add Health Record
+        {isEditing ? "Update Health Record" : "Add Health Record"}
       </button>
+
+      {isEditing && (
+        <button
+          onClick={onCancel}
+          style={{
+            width: "100%",
+            padding: "12px",
+            background: "transparent",
+            color: "#94a3b8",
+            border: "1px solid #475569",
+            borderRadius: "12px",
+            fontSize: "15px",
+            fontWeight: "600",
+            cursor: "pointer",
+            marginTop: "10px"
+          }}
+        >
+          Cancel Edit
+        </button>
+      )}
     </>
   );
 }

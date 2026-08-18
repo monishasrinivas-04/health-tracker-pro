@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function HealthHistory({ onDelete }) {
+function HealthHistory({ onDelete, onEdit })  {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -147,15 +147,24 @@ function HealthHistory({ onDelete }) {
                   </td>
 
                   <td>
-                    <button
-                      className="delete-button"
-                      onClick={() =>
-                        handleDelete(record._id)
-                      }
-                    >
-                      Delete
-                    </button>
-                  </td>
+  <div className="action-buttons">
+    <button
+      className="edit-button"
+      onClick={() => onEdit(record)}
+    >
+      Edit
+    </button>
+
+    <button
+      className="delete-button"
+      onClick={() =>
+        handleDelete(record._id)
+      }
+    >
+      Delete
+    </button>
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
