@@ -6,6 +6,8 @@ import "./App.css";
 import HealthForm from "./components/HealthForm";
 import HealthReport from "./components/HealthReport";
 import HealthHistory from "./components/HealthHistory";
+import HealthDashboard from "./components/HealthDashboard";
+
 import { calculateHealthData } from "./utils/healthCalculations";
 
 function App() {
@@ -197,6 +199,9 @@ function App() {
           Track your health. Understand your progress.
         </p>
 
+
+        <HealthDashboard />
+        
         <HealthForm
           name={name}
           age={age}
