@@ -3,6 +3,7 @@ import React, { useState } from "react";
 function HealthForm({
   name,
   age,
+  isSubmitting,
   weight,
   height,
   steps,
@@ -218,26 +219,34 @@ function HealthForm({
 
       {/* Submit */}
       <button
-        onClick={handleSubmit}
-        style={{
-          width: "100%",
-          padding: "14px",
-          background: isEditing
-            ? "linear-gradient(to right, #0ea5e9, #2563eb)"
-            : "linear-gradient(to right, #7f5af0, #6246ea)",
-          color: "#ffffff",
-          border: "none",
-          borderRadius: "12px",
-          fontSize: "16px",
-          fontWeight: "bold",
-          cursor: "pointer",
-          marginTop: "10px"
-        }}
-      >
-        {isEditing
-          ? "Update Health Record"
-          : "Add Health Record"}
-      </button>
+  onClick={handleSubmit}
+  disabled={isSubmitting}
+  style={{
+    width: "100%",
+    padding: "14px",
+    background: isEditing
+      ? "linear-gradient(to right, #0ea5e9, #2563eb)"
+      : "linear-gradient(to right, #7f5af0, #6246ea)",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "12px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: isSubmitting
+      ? "not-allowed"
+      : "pointer",
+    marginTop: "10px",
+    opacity: isSubmitting ? 0.7 : 1
+  }}
+>
+  {isSubmitting
+    ? isEditing
+      ? "Updating..."
+      : "Saving..."
+    : isEditing
+      ? "Update Health Record"
+      : "Add Health Record"}
+</button>
 
       {/* Cancel */}
       {isEditing && (

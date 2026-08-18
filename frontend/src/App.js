@@ -22,8 +22,10 @@ function App() {
   const [healthData, setHealthData] = useState(null);
   const [editingRecord, setEditingRecord] = useState(null);
 
-  // Single source of truth for health records
   const [records, setRecords] = useState([]);
+
+  // Tracks whether Add or Update is currently running
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch all records
   const fetchRecords = async () => {
@@ -56,6 +58,8 @@ function App() {
 
   // CREATE
   const addRecord = async () => {
+    setIsSubmitting(true);
+
     try {
       const calculatedData = calculateHealthData(
         weight,
@@ -86,7 +90,6 @@ function App() {
         }
       );
 
-      // Get the authoritative data from MongoDB
       await fetchRecords();
 
       setHealthData(calculatedData);
@@ -96,6 +99,8 @@ function App() {
     } catch (error) {
       console.error(error);
       setMessage("Backend Error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -127,6 +132,8 @@ function App() {
 
   // UPDATE
   const updateRecord = async () => {
+    setIsSubmitting(true);
+
     try {
       const calculatedData = calculateHealthData(
         weight,
@@ -157,7 +164,6 @@ function App() {
         }
       );
 
-      // Refresh central state
       await fetchRecords();
 
       setHealthData(calculatedData);
@@ -169,6 +175,8 @@ function App() {
       setMessage(
         "Unable to update health record."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -179,7 +187,6 @@ function App() {
         `http://localhost:5000/api/records/${recordId}`
       );
 
-      // Remove deleted record immediately from state
       setRecords((currentRecords) =>
         currentRecords.filter(
           (record) => record._id !== recordId
@@ -279,6 +286,7 @@ function App() {
           setSteps={setSteps}
           onSubmit={handleSubmit}
           isEditing={Boolean(editingRecord)}
+          isSubmitting={isSubmitting}
           onCancel={cancelEdit}
         />
 
