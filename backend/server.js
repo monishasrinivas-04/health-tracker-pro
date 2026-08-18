@@ -3,68 +3,249 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
+const PORT = 5000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/healthtracker");
-
-mongoose.connection.on("connected", () => {
+// MongoDB connection
+mongoose
+  .connect("mongodb://localhost:27017/healthtracker")
+  .then(() => {
     console.log("MongoDB Connected");
-});
+  })
+  .catch((error) => {
+    console.error("MongoDB Connection Error:", error);
+  });
 
-mongoose.connection.on("error", (err) => {
-    console.log("MongoDB Error:", err);
-});
+// Health Record Schema
+const HealthSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-const HealthSchema = new mongoose.Schema({
-    name: String,
-    age: String,
-    weight: String,
-    steps: String
-});
+    age: {
+      type: Number,
+      required: true,
+    },
+
+    weight: {
+      type: Number,
+      required: true,
+    },
+
+    height: {
+      type: Number,
+      required: true,
+    },
+
+    steps: {
+      type: Number,
+      required: true,
+    },
+
+    bmi: {
+      type: Number,
+    },
+
+    waterIntake: {
+      type: Number,
+    },
+
+    fitnessStatus: {
+      type: String,
+    },
+
+    diet: {
+      type: String,
+    },
+
+    healthTip: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const Health = mongoose.model("Health", HealthSchema);
 
-app.post("/addRecord", async (req, res) => {
+// --------------------------------------------------
+// CREATE - Add Health Record
+// POST /api/records
+// --------------------------------------------------
 
-    try {
+app.post("/api/records", async (req, res) => {
+  try {
+    const {
+      name,
+      age,
+      weight,
+      height,
+      steps,
+      bmi,
+      waterIntake,
+      fitnessStatus,
+      diet,
+      healthTip,
+    } = req.body;
 
-        console.log("BODY RECEIVED:");
-        console.log(req.body);
+    const record = new Health({
+      name,
+      age,
+      weight,
+      height,
+      steps,
+      bmi,
+      waterIntake,
+      fitnessStatus,
+      diet,
+      healthTip,
+    });
 
-        const data = new Health({
-            name: req.body.name,
-            age: req.body.age,
-            weight: req.body.weight,
-            steps: req.body.steps
-        });
+    const savedRecord = await record.save();
 
-        console.log("BEFORE SAVE");
+    res.status(201).json({
+      message: "Health record added successfully",
+      record: savedRecord,
+    });
+  } catch (error) {
+    console.error("Create Record Error:", error);
 
-        await data.save();
+    res.status(500).json({
+      message: "Failed to add health record",
+      error: error.message,
+    });
+  }
+});
 
-        console.log("AFTER SAVE");
+// --------------------------------------------------
+// READ - Get All Health Records
+// GET /api/records
+// --------------------------------------------------
 
-        res.status(200).json({
-            message: "Saved Successfully"
-        });
+app.get("/api/records", async (req, res) => {
+  try {
+    const records = await Health.find().sort({
+      createdAt: -1,
+    });
 
-    } catch (error) {
+    res.status(200).json(records);
+  } catch (error) {
+    console.error("Get Records Error:", error);
 
-        console.log("FULL ERROR:");
-        console.log(error);
+    res.status(500).json({
+      message: "Failed to fetch health records",
+      error: error.message,
+    });
+  }
+});
 
-        res.status(500).json({
-            message: error.message
-        });
+// --------------------------------------------------
+// READ - Get One Health Record
+// GET /api/records/:id
+// --------------------------------------------------
+
+app.get("/api/records/:id", async (req, res) => {
+  try {
+    const record = await Health.findById(req.params.id);
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Health record not found",
+      });
     }
+
+    res.status(200).json(record);
+  } catch (error) {
+    console.error("Get Record Error:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch health record",
+      error: error.message,
+    });
+  }
 });
 
+// --------------------------------------------------
+// UPDATE - Update Health Record
+// PUT /api/records/:id
+// --------------------------------------------------
+
+app.put("/api/records/:id", async (req, res) => {
+  try {
+    const updatedRecord = await Health.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedRecord) {
+      return res.status(404).json({
+        message: "Health record not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Health record updated successfully",
+      record: updatedRecord,
+    });
+  } catch (error) {
+    console.error("Update Record Error:", error);
+
+    res.status(500).json({
+      message: "Failed to update health record",
+      error: error.message,
+    });
+  }
+});
+
+// --------------------------------------------------
+// DELETE - Delete Health Record
+// DELETE /api/records/:id
+// --------------------------------------------------
+
+app.delete("/api/records/:id", async (req, res) => {
+  try {
+    const deletedRecord = await Health.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!deletedRecord) {
+      return res.status(404).json({
+        message: "Health record not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Health record deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Record Error:", error);
+
+    res.status(500).json({
+      message: "Failed to delete health record",
+      error: error.message,
+    });
+  }
+});
+
+// Health check
 app.get("/", (req, res) => {
-    res.send("Backend Working");
-});
-app.listen(5000, () => {
-    console.log("Server running on port 5000");
+  res.json({
+    message: "Health Tracker Pro API is running",
+  });
 });
 
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

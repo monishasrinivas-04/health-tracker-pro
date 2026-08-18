@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+import "./App.css";
+
 import HealthForm from "./components/HealthForm";
 import HealthReport from "./components/HealthReport";
+import HealthHistory from "./components/HealthHistory";
 import { calculateHealthData } from "./utils/healthCalculations";
 
 function App() {
@@ -13,7 +16,6 @@ function App() {
   const [steps, setSteps] = useState("");
 
   const [message, setMessage] = useState("");
-
   const [healthData, setHealthData] = useState(null);
 
   const addRecord = async () => {
@@ -30,18 +32,22 @@ function App() {
       }
 
       await axios.post(
-        "http://localhost:5000/addRecord",
+        "http://localhost:5000/api/records",
         {
           name,
           age,
           weight,
           height,
-          steps
+          steps,
+          bmi: calculatedData.bmi,
+          waterIntake: calculatedData.waterIntake,
+          fitnessStatus: calculatedData.fitnessStatus,
+          diet: calculatedData.diet,
+          healthTip: calculatedData.healthTip
         }
       );
 
       setHealthData(calculatedData);
-
       setMessage("Record Added Successfully");
     } catch (error) {
       console.log(error);
@@ -57,9 +63,9 @@ function App() {
           "linear-gradient(135deg, #141e30, #243b55)",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "flex-start",
         fontFamily: "Arial",
-        padding: "20px"
+        padding: "40px 20px"
       }}
     >
       <div
@@ -67,7 +73,7 @@ function App() {
           backgroundColor: "#1e293b",
           padding: "40px",
           borderRadius: "25px",
-          width: "450px",
+          width: "900px",
           maxWidth: "100%",
           boxShadow:
             "0px 10px 30px rgba(0,0,0,0.4)",
@@ -114,10 +120,9 @@ function App() {
           <p
             style={{
               textAlign: "center",
-              color:
-                message.includes("Successfully")
-                  ? "#4ade80"
-                  : "#f87171",
+              color: message.includes("Successfully")
+                ? "#4ade80"
+                : "#f87171",
               fontWeight: "bold",
               marginTop: "20px"
             }}
@@ -133,6 +138,8 @@ function App() {
           diet={healthData?.diet}
           healthTip={healthData?.healthTip}
         />
+
+        <HealthHistory />
       </div>
     </div>
   );
