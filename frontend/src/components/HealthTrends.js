@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import React, { useMemo, useState } from "react";
 
 const metrics = {
   weight: {
@@ -19,36 +18,16 @@ const metrics = {
   }
 };
 
-function HealthTrends() {
-  const [records, setRecords] = useState([]);
-  const [selectedMetric, setSelectedMetric] = useState("weight");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+function HealthTrends({ records }) {
+  const [selectedMetric, setSelectedMetric] =
+    useState("weight");
 
-  useEffect(() => {
-    const fetchRecords = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/records"
-        );
-
-        setRecords(response.data);
-      } catch (error) {
-        console.error("Error fetching health trends:", error);
-        setError("Unable to load health trends.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecords();
-  }, []);
+  const metric = metrics[selectedMetric];
 
   const chartData = useMemo(() => {
     return [...records]
       .filter((record) => {
         const value = Number(record[selectedMetric]);
-
         return Number.isFinite(value);
       })
       .sort(
@@ -70,24 +49,6 @@ function HealthTrends() {
           : "—"
       }));
   }, [records, selectedMetric]);
-
-  const metric = metrics[selectedMetric];
-
-  if (loading) {
-    return (
-      <section className="trends-container">
-        <p>Loading health trends...</p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="trends-container">
-        <p>{error}</p>
-      </section>
-    );
-  }
 
   if (chartData.length === 0) {
     return (
@@ -141,12 +102,12 @@ function HealthTrends() {
     range === 0 ? 1 : range;
 
   const chartMin =
-  selectedMetric === "steps"
-    ? 0
-    : minValue - safeRange * 0.1;
+    selectedMetric === "steps"
+      ? 0
+      : minValue - safeRange * 0.1;
 
   const chartMax =
-  maxValue + safeRange * 0.1;
+    maxValue + safeRange * 0.1;
 
   const getX = (index) => {
     if (chartData.length === 1) {
@@ -246,7 +207,10 @@ function HealthTrends() {
                     className="chart-axis-label"
                   >
                     {selectedMetric === "steps"
-                      ? Math.round(value).toLocaleString()
+                      ? Math.max(
+                          0,
+                          Math.round(value)
+                        ).toLocaleString()
                       : value.toFixed(1)}
                   </text>
                 </g>
@@ -298,6 +262,7 @@ function HealthTrends() {
       <div className="trend-summary">
         <div>
           <span>Latest</span>
+
           <strong>
             {chartData[
               chartData.length - 1
@@ -310,6 +275,7 @@ function HealthTrends() {
                     : 2
               }
             )}
+
             {metric.unit &&
               ` ${metric.unit}`}
           </strong>
@@ -317,7 +283,10 @@ function HealthTrends() {
 
         <div>
           <span>Records</span>
-          <strong>{chartData.length}</strong>
+
+          <strong>
+            {chartData.length}
+          </strong>
         </div>
       </div>
     </section>

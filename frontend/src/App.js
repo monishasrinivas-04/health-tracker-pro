@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 import "./App.css";
@@ -20,10 +20,29 @@ function App() {
 
   const [message, setMessage] = useState("");
   const [healthData, setHealthData] = useState(null);
-
   const [editingRecord, setEditingRecord] = useState(null);
 
-  const [historyVersion, setHistoryVersion] = useState(0);
+  // Single source of truth for health records
+  const [records, setRecords] = useState([]);
+
+  // Fetch all records
+  const fetchRecords = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/records"
+      );
+
+      setRecords(response.data);
+    } catch (error) {
+      console.error("Error fetching records:", error);
+      setMessage("Unable to load health records.");
+    }
+  };
+
+  // Load records when application starts
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
   const resetForm = () => {
     setName("");
@@ -35,6 +54,7 @@ function App() {
     setEditingRecord(null);
   };
 
+  // CREATE
   const addRecord = async () => {
     try {
       const calculatedData = calculateHealthData(
@@ -44,7 +64,9 @@ function App() {
       );
 
       if (!calculatedData) {
-        setMessage("Please enter valid weight and height.");
+        setMessage(
+          "Please enter valid weight and height."
+        );
         return;
       }
 
@@ -64,16 +86,20 @@ function App() {
         }
       );
 
+      // Get the authoritative data from MongoDB
+      await fetchRecords();
+
       setHealthData(calculatedData);
       setMessage("Record Added Successfully");
 
-      setHistoryVersion((version) => version + 1);
+      resetForm();
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setMessage("Backend Error");
     }
   };
 
+  // Start editing
   const startEditing = (record) => {
     setEditingRecord(record);
 
@@ -92,13 +118,14 @@ function App() {
     });
 
     setMessage("Editing health record");
-    
+
     window.scrollTo({
       top: 0,
       behavior: "smooth"
     });
   };
 
+  // UPDATE
   const updateRecord = async () => {
     try {
       const calculatedData = calculateHealthData(
@@ -108,7 +135,9 @@ function App() {
       );
 
       if (!calculatedData) {
-        setMessage("Please enter valid weight and height.");
+        setMessage(
+          "Please enter valid weight and height."
+        );
         return;
       }
 
@@ -128,15 +157,48 @@ function App() {
         }
       );
 
+      // Refresh central state
+      await fetchRecords();
+
       setHealthData(calculatedData);
       setMessage("Record Updated Successfully");
 
-      setEditingRecord(null);
-
-      setHistoryVersion((version) => version + 1);
+      resetForm();
     } catch (error) {
-      console.log(error);
-      setMessage("Unable to update health record.");
+      console.error(error);
+      setMessage(
+        "Unable to update health record."
+      );
+    }
+  };
+
+  // DELETE
+  const deleteRecord = async (recordId) => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/records/${recordId}`
+      );
+
+      // Remove deleted record immediately from state
+      setRecords((currentRecords) =>
+        currentRecords.filter(
+          (record) => record._id !== recordId
+        )
+      );
+
+      setMessage("Record Deleted Successfully");
+
+      if (
+        editingRecord &&
+        editingRecord._id === recordId
+      ) {
+        resetForm();
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        "Unable to delete health record."
+      );
     }
   };
 
@@ -200,10 +262,9 @@ function App() {
           Track your health. Understand your progress.
         </p>
 
+        <HealthDashboard records={records} />
 
-        <HealthDashboard />
-
-        <HealthTrends />
+        <HealthTrends records={records} />
 
         <HealthForm
           name={name}
@@ -245,11 +306,9 @@ function App() {
         />
 
         <HealthHistory
-          key={historyVersion}
+          records={records}
           onEdit={startEditing}
-          onDelete={() => {
-            setHistoryVersion((version) => version + 1);
-          }}
+          onDelete={deleteRecord}
         />
       </div>
     </div>

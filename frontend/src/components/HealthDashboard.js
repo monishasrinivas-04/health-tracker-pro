@@ -1,45 +1,11 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 
-function HealthDashboard() {
-  const [latestRecord, setLatestRecord] = useState(null);
-  const [recordCount, setRecordCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+function HealthDashboard({ records }) {
+  const latestRecord = records.length > 0
+    ? records[0]
+    : null;
 
-  const fetchDashboardData = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:5000/api/records"
-      );
-
-      const records = response.data;
-
-      setRecordCount(records.length);
-
-      if (records.length > 0) {
-        setLatestRecord(records[0]);
-      }
-    } catch (error) {
-      console.error(
-        "Error fetching dashboard data:",
-        error
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        Loading dashboard...
-      </div>
-    );
-  }
+  const recordCount = records.length;
 
   if (!latestRecord) {
     return (
@@ -71,6 +37,7 @@ function HealthDashboard() {
 
       <div className="stats-grid">
 
+        {/* BMI */}
         <div className="stat-card">
           <div className="stat-icon">⚖️</div>
 
@@ -90,6 +57,7 @@ function HealthDashboard() {
           </div>
         </div>
 
+        {/* Weight */}
         <div className="stat-card">
           <div className="stat-icon">💪</div>
 
@@ -108,6 +76,7 @@ function HealthDashboard() {
           </div>
         </div>
 
+        {/* Steps */}
         <div className="stat-card">
           <div className="stat-icon">🚶</div>
 
@@ -128,6 +97,7 @@ function HealthDashboard() {
           </div>
         </div>
 
+        {/* Water */}
         <div className="stat-card">
           <div className="stat-icon">💧</div>
 
