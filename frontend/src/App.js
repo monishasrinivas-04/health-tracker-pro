@@ -31,7 +31,7 @@ function App() {
   const fetchRecords = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/records"
+        `${process.env.REACT_APP_API_URL}/api/records`
       );
 
       setRecords(response.data);
@@ -75,7 +75,7 @@ function App() {
       }
 
       await axios.post(
-        "http://localhost:5000/api/records",
+        `${process.env.REACT_APP_API_URL}/api/records`,
         {
           name,
           age,
@@ -149,7 +149,7 @@ function App() {
       }
 
       await axios.put(
-        `http://localhost:5000/api/records/${editingRecord._id}`,
+        `${process.env.REACT_APP_API_URL}/api/records/${editingRecord._id}`,
         {
           name,
           age,
@@ -184,7 +184,7 @@ function App() {
   const deleteRecord = async (recordId) => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/records/${recordId}`
+        `${process.env.REACT_APP_API_URL}/api/records/${recordId}`
       );
 
       setRecords((currentRecords) =>
